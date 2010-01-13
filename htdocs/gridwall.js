@@ -29,8 +29,6 @@ function Cell(x, y) {
 var cellMethods = {};
 Cell.prototype = cellMethods;
 cellMethods.setColspan = function (colspan) {
-    console.log("Setting ", this, " colspan to be ", colspan);
-
     if (this.obscuredBy) {
         var obscuredBy = this.obscuredBy;
         obscuredBy.destroy();
@@ -69,7 +67,6 @@ cellMethods.setColspan = function (colspan) {
     this.elem.width(spanSize(colspan));
 };
 cellMethods.setRowspan = function (rowspan) {
-    console.log("Setting ", this, " rowspan to be ", rowspan);
     if (this.obscuredBy) {
         var obscuredBy = this.obscuredBy;
         obscuredBy.destroy();
@@ -85,12 +82,8 @@ cellMethods.setRowspan = function (rowspan) {
         var startRow = this.y + (oldRowspan - exposedRows);
         for (var y = startRow; y < (this.y + oldRowspan); y++) {
             for (var x = this.x; x < (this.x + this.colspan); x++) {
-                if (this.x == x && this.y == y) {
-                    console.log("I seem to be undestroying myself?!");
-                }
                 cells[y][x].undestroy();
                 cells[y][x].obscuredBy = null;
-                console.log([x,y], " is now ", cells[y][x]);
             }
         }
     }
@@ -101,12 +94,8 @@ cellMethods.setRowspan = function (rowspan) {
         var startRow = this.y + oldRowspan;
         for (var y = startRow; y < (this.y + rowspan); y++) {
             for (var x = this.x; x < (this.x + this.colspan); x++) {
-                if (this.x == x && this.y == y) {
-                    console.log("I seem to be destroying myself?!");
-                }
                 cells[y][x].destroy();
                 cells[y][x].obscuredBy = this;
-                console.log([x,y], " is now ", cells[y][x]);
             }
         }
 
@@ -120,7 +109,6 @@ cellMethods.setBothspan = function (span) {
     this.setColspan(span);
 };
 cellMethods.destroy = function () {
-    console.log("Destroying ", this);
     for (var i = 0; i < cellDestroyListeners.length; i++) {
         var func = cellDestroyListeners[i];
         func(this);
@@ -145,7 +133,6 @@ cellMethods.destroy = function () {
     }
 };
 cellMethods.undestroy = function () {
-    console.log("Undestroying ", this);
     if (! this.elem) {
         this.elem = makeElementForCell(this.x, this.y);
     }
