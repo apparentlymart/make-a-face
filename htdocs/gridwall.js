@@ -207,6 +207,26 @@ function handleResize() {
     var maxX = Math.floor(columns / 2);
 
     var newRows = rows - currentRows;
+    var newColumns = columns - currentColumns;
+
+    if (newColumns < 0) {
+        // We're shrinking, so we need to destroy some columns.
+
+        for (var y = 0; y < currentRows; y++) {
+            for (var x = maxX; x < currentMaxX; x++) {
+                cells[y][x].destroy();
+                delete cells[y][x];
+                if (x > 0) {
+                    cells[y][-x].destroy();
+                    delete cells[y][-x];
+                }
+            }
+        }
+
+        currentColumns = columns;
+        currentMaxX = maxX;
+    }
+
     if (newRows > 0) {
         // We're growing, so we need to add some new rows.
         for (var y = currentRows; y < rows; y++) {
@@ -237,7 +257,6 @@ function handleResize() {
         currentRows = rows;
     }
 
-    var newColumns = columns - currentColumns;
     if (newColumns > 0) {
 
         // We're growing, so we need to add some new columns.
@@ -246,23 +265,6 @@ function handleResize() {
                 cells[y][x] = new Cell(x, y);
                 if (x > 0) {
                     cells[y][-x] = new Cell(-x, y);
-                }
-            }
-        }
-
-        currentColumns = columns;
-        currentMaxX = maxX;
-    }
-    else if (newColumns < 0) {
-        // We're shrinking, so we need to destroy some columns.
-
-        for (var y = 0; y < currentRows; y++) {
-            for (var x = maxX; x < currentMaxX; x++) {
-                cells[y][x].destroy();
-                delete cells[y][x];
-                if (x > 0) {
-                    cells[y][-x].destroy();
-                    delete cells[y][-x];
                 }
             }
         }
