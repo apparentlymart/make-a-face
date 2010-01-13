@@ -296,6 +296,7 @@ function makeElementForCell(cellX, cellY) {
     elem.css("left", realX+"px");
     elem.css("top", realY+"px");
     elem.css("background-color", "#222222");
+    elem.css("overflow", "hidden");
 
     containerElem.append(elem);
 
