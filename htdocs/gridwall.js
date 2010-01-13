@@ -6,8 +6,12 @@
 var cellSize = 150;
 var cellSpacing = 4;
 
+var minColumns = 3;
+var minRows = 4;
+
 var currentColumns = 0;
 var currentRows = 0;
+var currentMaxX = 0;
 
 var cells = {};
 
@@ -191,16 +195,27 @@ function handleResize() {
     var pageWidth = sizerElem.width();
     var pageHeight = sizerElem.height();
 
-    var columns = Math.ceil((pageWidth - cellSpacing) / (cellSize + cellSpacing));
+    var columns = Math.ceil((pageWidth - cellSpacing) / (cellSize + cellSpacing)) + 2;
     var rows = Math.ceil((pageHeight - cellSpacing) / (cellSize + cellSpacing));
+
+    // We must always have an odd number of columns because our x=0 is in the center...
+    if (columns % 2 == 0) columns = columns + 1;
+
+    if (columns < minColumns) columns = minColumns;
+    if (rows < minRows) rows = minRows;
+
+    var maxX = Math.floor(columns / 2);
 
     var newRows = rows - currentRows;
     if (newRows > 0) {
         // We're growing, so we need to add some new rows.
         for (var y = currentRows; y < rows; y++) {
             cells[y] = {};
-            for (var x = 0; x < currentColumns; x++) {
+            for (var x = 0; x < maxX; x++) {
                 cells[y][x] = new Cell(x, y);
+                if (x > 0) {
+                    cells[y][-x] = new Cell(-x, y);
+                }
             }
         }
 
@@ -210,9 +225,11 @@ function handleResize() {
         // We're shrinking, so we need to destroy some rows.
 
         for (var y = rows; y < currentRows; y++) {
-            for (var x = 0; x < currentColumns; x++) {
-                cell = cells[y][x];
-                cell.destroy();
+            for (var x = 0; x < currentMaxX; x++) {
+                cells[y][x].destroy();
+                if (x > 0) {
+                    cells[y][-x].destroy();
+                }
             }
             delete cells[y];
         }
@@ -222,27 +239,36 @@ function handleResize() {
 
     var newColumns = columns - currentColumns;
     if (newColumns > 0) {
+
         // We're growing, so we need to add some new columns.
         for (var y = 0; y < currentRows; y++) {
-            for (var x = currentColumns; x < columns; x++) {
+            for (var x = currentMaxX; x < maxX; x++) {
                 cells[y][x] = new Cell(x, y);
+                if (x > 0) {
+                    cells[y][-x] = new Cell(-x, y);
+                }
             }
         }
 
         currentColumns = columns;
+        currentMaxX = maxX;
     }
     else if (newColumns < 0) {
         // We're shrinking, so we need to destroy some columns.
 
         for (var y = 0; y < currentRows; y++) {
-            for (var x = columns; x < currentColumns; x++) {
-                cell = cells[y][x];
-                cell.destroy();
+            for (var x = maxX; x < currentMaxX; x++) {
+                cells[y][x].destroy();
                 delete cells[y][x];
+                if (x > 0) {
+                    cells[y][-x].destroy();
+                    delete cells[y][-x];
+                }
             }
         }
 
         currentColumns = columns;
+        currentMaxX = maxX;
     }
 
 }

@@ -7,7 +7,7 @@ function onCellCreate(cell) {
     cell.elem.css("background-size", "100%");
     cell.elem.css("-moz-background-size", "100%");
 
-    if (cell.x == 4 && cell.y == 4) {
+    if (cell.x == 2 && cell.y == 1) {
         cell.elem.css("background-image", "url(http://up4.typepad.com/6a010535617444970b0120a5aa75ce970c-250si)");
         cell.elem.css("-webkit-box-shadow", "0 0 20px #000000");
         cell.elem.css("-webkit-transform", "Scale(1.1)");
@@ -16,7 +16,7 @@ function onCellCreate(cell) {
         cell.elem.css("z-index", "100");
         //cell.elem.css("outline", "2px solid white");
     }
-    else if (cell.x == 6 && cell.y == 2) {
+    else if (cell.x == -2 && cell.y == 2) {
         cell.elem.css("background-image", "url(http://up3.typepad.com/6a00d83451ce6b69e200e5500958118834-250si)");
     }
     else if (cell.x == 1 && cell.y == 3) {
@@ -36,7 +36,7 @@ $(document).ready(
     function () {
         initializeGrid();
 
-        cells[0][2].setBothspan(2);
+        cells[0][-3].setBothspan(2);
     }
 );
 
