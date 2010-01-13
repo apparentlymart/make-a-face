@@ -195,7 +195,7 @@ function handleResize() {
     var pageWidth = sizerElem.width();
     var pageHeight = sizerElem.height();
 
-    var columns = Math.ceil((pageWidth - cellSpacing) / (cellSize + cellSpacing)) + 2;
+    var columns = Math.ceil((pageWidth - cellSpacing) / (cellSize + cellSpacing));
     var rows = Math.ceil((pageHeight - cellSpacing) / (cellSize + cellSpacing));
 
     // We must always have an odd number of columns because our x=0 is in the center...
@@ -204,7 +204,7 @@ function handleResize() {
     if (columns < minColumns) columns = minColumns;
     if (rows < minRows) rows = minRows;
 
-    var maxX = Math.floor(columns / 2);
+    var maxX = Math.ceil(columns / 2);
 
     var newRows = rows - currentRows;
     var newColumns = columns - currentColumns;
