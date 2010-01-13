@@ -10,9 +10,9 @@ function onCellCreate(cell) {
     if (cell.x == 4 && cell.y == 4) {
         cell.elem.css("background-image", "url(http://up4.typepad.com/6a010535617444970b0120a5aa75ce970c-250si)");
         cell.elem.css("-webkit-box-shadow", "0 0 20px #000000");
-        cell.elem.css("-webkit-transform", "Scale(1.5)");
+        cell.elem.css("-webkit-transform", "Scale(1.1)");
         cell.elem.css("-moz-box-shadow", "0 0 20px #000000");
-        cell.elem.css("-moz-transform", "Scale(1.5)");
+        cell.elem.css("-moz-transform", "Scale(1.1)");
         cell.elem.css("z-index", "100");
         //cell.elem.css("outline", "2px solid white");
     }

@@ -3,16 +3,27 @@
 // Fills a page with a grid of DIV elements and provides an API
 // to manipulate them.
 
-var cellSize = 128;
+var cellSize = 150;
 var cellSpacing = 4;
 
 var currentColumns = 0;
 var currentRows = 0;
 
-var cells = [];
+var cells = {};
 
 var cellCreateListeners = [];
 var cellDestroyListeners = [];
+
+// We put all of the cells into a centered container element so that
+// we don't need to shift everything when the browser resizes.
+var containerElem = null;
+
+// Since our cells stick out the edge of the window, this
+// makes the size of document.body grow outside the canvas.
+// So we can determine the visible size, we also place
+// a fixed position element over the entire canvas that
+// we can use to measure it instead of document.body.
+var sizerElem = null;
 
 function Cell(x, y) {
     this.x = x;
@@ -144,6 +155,29 @@ cellMethods.undestroy = function () {
 
 function initializeGrid() {
 
+    bodyElem = $(document.body);
+    bodyElem.css("margin", "0");
+    bodyElem.css("padding", "0");
+    bodyElem.css("overflow", "hidden");
+
+    sizerElem = $('<div></div>');
+    $(document.body).append(sizerElem);
+    sizerElem.css("position", "fixed");
+    sizerElem.css("top", "0");
+    sizerElem.css("left", "0");
+    sizerElem.css("bottom", "0");
+    sizerElem.css("right", "0");
+
+    containerElem = $('<div></div>');
+    $(document.body).append(containerElem);
+    containerElem.width(cellSize);
+    containerElem.height(cellSize);
+    containerElem.css("position", "relative");
+    containerElem.css("overflow", "visible");
+    containerElem.css("margin", "0");
+    containerElem.css("padding", "0");
+    containerElem.css("margin", "0 auto");
+
     // The initial setup is actually implemented just be resizing
     // the grid from 0 by 0 to whatever the window actually requires.
     handleResize();
@@ -154,8 +188,8 @@ function initializeGrid() {
 
 function handleResize() {
 
-    var pageWidth = $(document).width();
-    var pageHeight = $(document).height();
+    var pageWidth = sizerElem.width();
+    var pageHeight = sizerElem.height();
 
     var columns = Math.ceil((pageWidth - cellSpacing) / (cellSize + cellSpacing));
     var rows = Math.ceil((pageHeight - cellSpacing) / (cellSize + cellSpacing));
@@ -164,7 +198,7 @@ function handleResize() {
     if (newRows > 0) {
         // We're growing, so we need to add some new rows.
         for (var y = currentRows; y < rows; y++) {
-            cells[y] = [];
+            cells[y] = {};
             for (var x = 0; x < currentColumns; x++) {
                 cells[y][x] = new Cell(x, y);
             }
@@ -180,8 +214,8 @@ function handleResize() {
                 cell = cells[y][x];
                 cell.destroy();
             }
+            delete cells[y];
         }
-        cells = cells.slice(0, rows);
 
         currentRows = rows;
     }
@@ -204,8 +238,8 @@ function handleResize() {
             for (var x = columns; x < currentColumns; x++) {
                 cell = cells[y][x];
                 cell.destroy();
+                delete cells[y][x];
             }
-            cells[y] = cells[y].slice(0, columns);
         }
 
         currentColumns = columns;
@@ -230,12 +264,12 @@ function makeElementForCell(cellX, cellY) {
     var realX = (cellX * (cellSize + cellSpacing)) + cellSpacing;
     var realY = (cellY * (cellSize + cellSpacing)) + cellSpacing;
 
-    elem.css("position", "fixed");
+    elem.css("position", "absolute");
     elem.css("left", realX+"px");
     elem.css("top", realY+"px");
     elem.css("background-color", "#222222");
 
-    $(document.body).append(elem);
+    containerElem.append(elem);
 
     return elem;
 
