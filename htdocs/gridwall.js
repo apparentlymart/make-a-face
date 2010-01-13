@@ -29,9 +29,12 @@ function Cell(x, y) {
 var cellMethods = {};
 Cell.prototype = cellMethods;
 cellMethods.setColspan = function (colspan) {
+    console.log("Setting ", this, " colspan to be ", colspan);
+
     if (this.obscuredBy) {
-        //this.obscuredBy.setColspan(1);
-        //this.obscuredBy.setRowspan(1);
+        var obscuredBy = this.obscuredBy;
+        obscuredBy.destroy();
+        obscuredBy.undestroy();
     }
 
     var oldColspan = this.colspan;
@@ -55,8 +58,8 @@ cellMethods.setColspan = function (colspan) {
         var startColumn = this.x + oldColspan;
         for (var y = this.y; y < (this.y + this.rowspan); y++) {
             for (var x = startColumn; x < (this.x + colspan); x++) {
-                cells[y][x].obscuredBy = this;
                 cells[y][x].destroy();
+                cells[y][x].obscuredBy = this;
             }
         }
 
@@ -66,9 +69,11 @@ cellMethods.setColspan = function (colspan) {
     this.elem.width(spanSize(colspan));
 };
 cellMethods.setRowspan = function (rowspan) {
+    console.log("Setting ", this, " rowspan to be ", rowspan);
     if (this.obscuredBy) {
-        //this.obscuredBy.setColspan(1);
-        //this.obscuredBy.setRowspan(1);
+        var obscuredBy = this.obscuredBy;
+        obscuredBy.destroy();
+        obscuredBy.undestroy();
     }
 
     var oldRowspan = this.rowspan;
@@ -80,8 +85,12 @@ cellMethods.setRowspan = function (rowspan) {
         var startRow = this.y + (oldRowspan - exposedRows);
         for (var y = startRow; y < (this.y + oldRowspan); y++) {
             for (var x = this.x; x < (this.x + this.colspan); x++) {
+                if (this.x == x && this.y == y) {
+                    console.log("I seem to be undestroying myself?!");
+                }
                 cells[y][x].undestroy();
                 cells[y][x].obscuredBy = null;
+                console.log([x,y], " is now ", cells[y][x]);
             }
         }
     }
@@ -92,8 +101,12 @@ cellMethods.setRowspan = function (rowspan) {
         var startRow = this.y + oldRowspan;
         for (var y = startRow; y < (this.y + rowspan); y++) {
             for (var x = this.x; x < (this.x + this.colspan); x++) {
-                cells[y][x].obscuredBy = this;
+                if (this.x == x && this.y == y) {
+                    console.log("I seem to be destroying myself?!");
+                }
                 cells[y][x].destroy();
+                cells[y][x].obscuredBy = this;
+                console.log([x,y], " is now ", cells[y][x]);
             }
         }
 
@@ -107,10 +120,20 @@ cellMethods.setBothspan = function (span) {
     this.setColspan(span);
 };
 cellMethods.destroy = function () {
+    console.log("Destroying ", this);
     for (var i = 0; i < cellDestroyListeners.length; i++) {
         var func = cellDestroyListeners[i];
         func(this);
     }
+    // If we're being obscured by something, force that thing
+    // to be recreated as a 1x1 cell so we don't end up
+    // with large cells hanging out of the grid.
+    if (this.obscuredBy) {
+        var obscuredBy = this.obscuredBy;
+        obscuredBy.destroy();
+        obscuredBy.undestroy();
+    }
+
     // Set the span to be 1 so that we recreate any other
     // cells that we were obscuring if we were larger.
     this.setRowspan(1);
@@ -122,6 +145,7 @@ cellMethods.destroy = function () {
     }
 };
 cellMethods.undestroy = function () {
+    console.log("Undestroying ", this);
     if (! this.elem) {
         this.elem = makeElementForCell(this.x, this.y);
     }
@@ -138,15 +162,6 @@ function initializeGrid() {
     handleResize();
 
     $(window).resize(handleResize);
-
-    cells[0][0].setBothspan(2);
-    //cells[0][0].setColspan(1);
-
-    //cells[1][3].setColspan(2);
-    //cells[1][3].setRowspan(2);
-
-    //cells[2][2].setColspan(3);
-    //cells[2][2].setRowspan(3);
 
 }
 
@@ -170,6 +185,19 @@ function handleResize() {
 
         currentRows = rows;
     }
+    else if (newRows < 0) {
+        // We're shrinking, so we need to destroy some rows.
+
+        for (var y = rows; y < currentRows; y++) {
+            for (var x = 0; x < currentColumns; x++) {
+                cell = cells[y][x];
+                cell.destroy();
+            }
+        }
+        cells = cells.slice(0, rows);
+
+        currentRows = rows;
+    }
 
     var newColumns = columns - currentColumns;
     if (newColumns > 0) {
@@ -182,8 +210,19 @@ function handleResize() {
 
         currentColumns = columns;
     }
+    else if (newColumns < 0) {
+        // We're shrinking, so we need to destroy some columns.
 
-    // FIXME: Also implement shrinking?
+        for (var y = 0; y < currentRows; y++) {
+            for (var x = columns; x < currentColumns; x++) {
+                cell = cells[y][x];
+                cell.destroy();
+            }
+            cells[y] = cells[y].slice(0, columns);
+        }
+
+        currentColumns = columns;
+    }
 
 }
 
